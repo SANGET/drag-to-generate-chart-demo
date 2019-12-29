@@ -1,0 +1,31 @@
+@import '@deer-ui/core/style/default.scss';
+// @import '@deer-ui/core/style/transition.scss';
+
+#Main {
+  /*
+    写什么都可以
+   */
+}
+
+.active-renderer {
+  max-height: 50vh;
+  overflow: auto;
+  position: relative;
+  transition: box-shadow 0.2s ease;
+  &.active {
+    box-shadow: 0 0 12px rgba($themeColor, 0.4);
+    z-index: 1;
+  }
+}
+
+.renderer {
+  min-height: 90vh;
+  overflow-y: auto;
+  &.overing {
+    background-color: rgba($themeColor, 0.2);
+  }
+}
+
+.table {
+  background-color: #FFF;
+}
