@@ -105,15 +105,6 @@ const ChartGroup = ({
                   item={item}
                   onClick={(e) => {
                     setActiveComponentByType(type, item);
-                    // setActiveComponent({
-                    //   ...activeComponent,
-                    //   [type]: {
-                    //     ...item,
-                    //     runningProps: Object.assign({},
-                    //       activeComponent[type] && activeComponent[type].runningProps)
-                    //   }
-                    // });
-                    // setSelectedType(type);
                   }}
                 >
                   {icon}
@@ -143,6 +134,8 @@ const MainRenderContainer = ({
       isOver: !!monitor.isOver(),
     }),
   });
+  const activeItemTypes = Object.keys(activeComponent);
+  const hasActiveItem = activeItemTypes.length > 0;
   return (
     <div
       ref={drop}
@@ -154,7 +147,7 @@ const MainRenderContainer = ({
         className="render-container"
       >
         {
-          Object.keys(activeComponent).map((itemType) => {
+          hasActiveItem ? activeItemTypes.map((itemType) => {
             const item = activeComponent[itemType];
             const active = selectedItem && selectedItem.type === itemType;
             return (
@@ -174,7 +167,19 @@ const MainRenderContainer = ({
                 </div>
               </Grid>
             );
-          })
+          }) : (
+            <Grid
+              xl={12}
+              lg={12}
+              className="no-item-tip text-center"
+              style={{
+                fontSize: 30,
+                color: `#DDD`,
+              }}
+            >
+              Drag a component from left panel to this area.
+            </Grid>
+          )
         }
       </Grid>
     </div>

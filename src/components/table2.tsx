@@ -3,7 +3,7 @@ import { FormOptions } from '@deer-ui/core/form-generator/form-generator';
 import { month, getCarDataForTable } from '../utils/carsdata-filter';
 
 const Table = ({
-  dataSource
+  dataSource, ...other
 }) => {
   const colums = month;
   const colSpan = 25;
