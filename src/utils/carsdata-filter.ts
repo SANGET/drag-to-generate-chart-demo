@@ -1,18 +1,19 @@
-interface CarsDataForPivotTableStruct {
-  [brand: string]: {
-    [type: string]: {
-      [carName: string]: ({
-        count: number;
-        price: number;
-      })[];
-    };
-  };
-}
+/* eslint-disable no-param-reassign */
+// interface CarsDataForPivotTableStruct {
+//   [brand: string]: {
+//     [type: string]: {
+//       [carName: string]: ({
+//         count: number;
+//         price: number;
+//       })[];
+//     };
+//   };
+// }
 interface CarsDataForChartStruct {
   totalSales: number[];
   counts: number[];
 }
-let CarsDataForPivotTable: CarsDataForPivotTableStruct = {};
+// const CarsDataForPivotTable: CarsDataForPivotTableStruct = {};
 const CarsDataForChart: CarsDataForChartStruct = {
   totalSales: [],
   counts: [],
@@ -23,7 +24,7 @@ export const month = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-const getCarDataForChart = (CarsDataSource) => {
+const getDataForChart = (CarsDataSource) => {
   if (CarsDataForChart.totalSales.length === 0) {
     CarsDataForChart.totalSales = new Array(month.length);
     CarsDataForChart.counts = new Array(month.length);
@@ -40,36 +41,71 @@ const getCarDataForChart = (CarsDataSource) => {
   return CarsDataForChart;
 };
 
-const getCarDataForTable = (CarsDataSource) => {
-  const carTypeMap = {};
-  CarsDataSource.forEach((item) => {
-    const {
-      TYPE, DATE, NAME, MODEL, TRANS, BRAND, COUNT, PRICE, TOTAL
-    } = item;
-    // const _month = month[monthNum];
-    const monthNum = (new Date(DATE)).getMonth();
-    if (!carTypeMap[BRAND]) carTypeMap[BRAND] = {};
-    if (!carTypeMap[BRAND][TYPE]) carTypeMap[BRAND][TYPE] = {};
-    if (!carTypeMap[BRAND][TYPE][NAME]) carTypeMap[BRAND][TYPE][NAME] = new Array(month.length);
-    if (!carTypeMap[BRAND][TYPE][NAME][monthNum]) {
-      carTypeMap[BRAND][TYPE][NAME][monthNum] = {
-        count: +COUNT,
-        price: +PRICE
-      };
-    } else {
-      const perData = carTypeMap[BRAND][TYPE][NAME][monthNum];
-      carTypeMap[BRAND][TYPE][NAME][monthNum] = {
-        count: perData.count + +COUNT,
-        price: perData.price + +PRICE
-      };
-    }
-  });
-  CarsDataForPivotTable = carTypeMap;
+interface Accessor {
+  accessor: string;
+  filter?: (accessor: string, currData: {}) => any;
+}
 
-  return CarsDataForPivotTable;
+interface GetDataForTableOptions {
+  dateField: string;
+  dateFilter: 'month' | 'year';
+  columnsFields: Accessor;
+  rowsFields: Accessor[];
+  dataFields: Accessor[];
+}
+const getDataLenByDate = (dateFilter) => {
+  let dataLen;
+  switch (dateFilter) {
+    case 'month':
+      dataLen = 12;
+      break;
+    case 'year':
+      dataLen = 1;
+      break;
+  }
+  return dataLen;
+};
+const getDataForTable = (CarsDataSource, options: GetDataForTableOptions) => {
+  if (!options) return console.log('请传入 options');
+  const dataForTable = {};
+  const {
+    dataFields, rowsFields, columnsFields, dateField, dateFilter
+  } = options;
+  const dataLen = getDataLenByDate(dateFilter);
+  const rowsFieldsLen = rowsFields.length;
+  CarsDataSource.forEach((item) => {
+    const dateAccessor = item[dateField];
+    const dataDeeper = (new Date(dateAccessor)).getMonth();
+    const rowsFieldFilter = (targetObj, rowFilterDeepIdx = 0) => {
+      // 递归修改 targetObj 的属性
+      if (rowFilterDeepIdx > rowsFieldsLen - 1) {
+        return targetObj;
+      }
+      const { accessor, filter } = rowsFields[rowFilterDeepIdx];
+      const currItemField = item[filter ? filter(item, {}) : accessor];
+      if (rowFilterDeepIdx === rowsFieldsLen - 1) {
+        // 向最后一项添加 data
+        if (!targetObj[currItemField]) targetObj[currItemField] = new Array(dataLen);
+        dataFields.forEach(({ accessor: dataAccessor, filter: dataFilter }) => {
+          targetObj[currItemField][dataDeeper] = {
+            ...targetObj[currItemField][dataDeeper],
+            [dataAccessor]: dataFilter
+              ? dataFilter(item[dataAccessor], targetObj)
+              : item[dataAccessor],
+          };
+        });
+      } else if (!targetObj[currItemField]) targetObj[currItemField] = {};
+      rowsFieldFilter(targetObj[currItemField], rowFilterDeepIdx + 1);
+    };
+    rowsFieldFilter(dataForTable, 0);
+  });
+  return dataForTable;
+  // CarsDataForPivotTable = dataForTable;
+
+  // return CarsDataForPivotTable;
 };
 
 export {
-  getCarDataForTable,
-  getCarDataForChart
+  getDataForTable,
+  getDataForChart
 };

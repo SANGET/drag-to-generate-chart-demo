@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import { FormOptions } from '@deer-ui/core/form-generator/form-filter';
-import { month, getCarDataForChart } from '../utils/carsdata-filter';
+import { month, getDataForChart } from '../utils/carsdata-filter';
 
 const LineChart = ({
   dataSource, title = 'Sales trend'
 }) => {
-  const DataForChart = useMemo(() => getCarDataForChart(dataSource), [dataSource]);
+  const DataForChart = useMemo(() => getDataForChart(dataSource), [dataSource]);
   useEffect(() => {
     if (!window.Highcharts) return;
     const myChart = window.Highcharts.chart('chart', {
@@ -48,7 +48,7 @@ const LineChart = ({
   );
 };
 
-const options: FormOptions = [
+const options = (columns): FormOptions => [
   {
     title: '标题',
     type: 'input',
@@ -57,6 +57,6 @@ const options: FormOptions = [
   },
 ];
 
-LineChart.editablePropsConfig = options;
+LineChart.genEditablePropsConfig = options;
 
 export default LineChart;

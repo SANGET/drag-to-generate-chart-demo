@@ -12,6 +12,36 @@ import CarsDataSource from './utils/carsdata.json';
 import './style.scss';
 import { ItemTypes } from './utils/constant';
 
+// 测试数据的正确性
+import { getDataForTable } from './utils/carsdata-filter';
+
+const data = getDataForTable(CarsDataSource, {
+  dateField: 'DATE',
+  dateFilter: 'month',
+  columnsFields: {
+    accessor: '',
+  },
+  rowsFields: [{
+    accessor: 'BRAND',
+  }, {
+    accessor: 'TYPE',
+  }, {
+    accessor: 'NAME',
+  }],
+  dataFields: [{
+    accessor: 'COUNT',
+    filter: (str, currData) => {
+      return +str + (+currData.COUNT || 0);
+    }
+  }, {
+    accessor: 'PRICE',
+    filter: (str, currData) => {
+      return +str + (+currData.PRICE || 0);
+    }
+  }],
+});
+console.log(data);
+
 const createViewType = [
   {
     type: 'lineChart',
@@ -36,17 +66,17 @@ const createViewType = [
 ];
 
 const ComponentPropsEditor = ({
-  selectedComponent, onChangeValue
+  selectedComponent, onChangeValue, columns
 }) => {
   if (!selectedComponent) return null;
   const {
     title, component, type, runningProps
   } = selectedComponent;
-  const { editablePropsConfig } = component;
+  const { genEditablePropsConfig } = component;
   return (
     <div className="chart-editor">
       <FormGenerator
-        formOptions={['Props editor', ...editablePropsConfig]}
+        formOptions={['Props editor', ...genEditablePropsConfig(columns)]}
         ref={(e) => {
           if (e) {
             e.changeValues(runningProps, true);
@@ -162,6 +192,7 @@ const MainRenderContainer = ({
                 >
                   <item.component
                     {...item.runningProps}
+                    columns={Object.keys(CarsDataSource[0])}
                     dataSource={CarsDataSource}
                   />
                 </div>
@@ -233,6 +264,7 @@ const App = () => {
           >
             <ComponentPropsEditor
               key={selectedType}
+              columns={Object.keys(CarsDataSource[0])}
               onChangeValue={(nextValues) => {
               // console.log(nextValues);
                 setActiveComponent({
