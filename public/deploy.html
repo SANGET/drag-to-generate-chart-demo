@@ -1,20 +1,36 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=DEVICE-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <meta keyword="React App Seed"/>
-    <link rel="shortcut icon" type="image/png" href="./favicon.png"/>
-    <title>React App Seed</title>
-  </head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport"
+    content="width=DEVICE-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta keyword="R" />
+  <link rel="shortcut icon" type="image/png" href="./favicon.png" />
+  <link rel="stylesheet" href="./css/loading.cycle.css">
+  <title>React drag table generator</title>
+</head>
 
-  <body>
-    <div id="Main">
-      <!-- React 容器 -->
-    </div>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.1/css/all.min.css" />
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.15.4/dist/xlsx.full.min.js"></script>
-  </body>
+<body>
+  <div class="__preloader" id="loadingBg">
+    <div class="__loader"></div>
+  </div>
+  <div id="Main">
+    <!-- React 容器 -->
+  </div>
+  <script>
+    window.OnLuanched = function () {
+      var loaderDOM = document.querySelector('#loadingBg');
+      if (!loaderDOM) return;
+      loaderDOM.classList.add('loaded');
+      setTimeout(function () {
+        loaderDOM.parentNode.removeChild(loaderDOM);
+      }, 100);
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.1/css/all.min.css" />
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.15.4/dist/xlsx.full.min.js"></script>
+</body>
+
 </html>

@@ -14,6 +14,8 @@ import { ItemTypes } from './utils/constant';
 
 import { convertXlsxToJson } from './utils/convert2json';
 
+if (window.OnLuanched) window.OnLuanched();
+
 // 测试数据的正确性
 // import { getDataForTable } from './utils/carsdata-filter';
 
