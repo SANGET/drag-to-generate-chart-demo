@@ -109,59 +109,86 @@ const UploadFile = ({
 }) => {
   const [loadedData, setLoadedData] = useState();
   return (
-    <div className="file-loader">
-      <input
-        id="LoadFile"
-        style={{
-          position: 'absolute',
-          zIndex: -1,
-          opacity: 0
-        }}
-        type="file" onChange={(e) => {
-          convertXlsxToJson(e)
-            .then((resData) => {
-              onLoadFile && onLoadFile(resData);
-              setLoadedData(resData);
-            });
-        }}
-      />
-      <Button
-        className="mr10"
-        onClick={(e) => {
-          document.querySelector('#LoadFile').click();
-        }}
-      >
+    <Container className="file-loader" fluid>
+      <Grid container>
+        <input
+          id="LoadFile"
+          style={{
+            position: 'absolute',
+            zIndex: -1,
+            opacity: 0
+          }}
+          type="file" onChange={(e) => {
+            convertXlsxToJson(e)
+              .then((resData) => {
+                onLoadFile && onLoadFile(resData);
+                setLoadedData(resData);
+              });
+          }}
+        />
+        <Button
+          className="mr10"
+          onClick={(e) => {
+            document.querySelector('#LoadFile').click();
+          }}
+        >
         Load xlsx
-      </Button>
-      <Button
-        hola
-        className="mr10"
-        onClick={(e) => {
-        import('./utils/carsdata.json')
-          .then((res) => {
-            onLoadFile(res.Cars);
-            setLoadedData(res.Cars);
-          });
-        }}
-      >
+        </Button>
+        <Button
+          hola
+          className="mr10"
+          onClick={(e) => {
+            import('./utils/carsdata.json')
+              .then((res) => {
+                onLoadFile(res.Cars);
+                setLoadedData(res.Cars);
+              });
+          }}
+        >
         Use default data
-      </Button>
-      {
-        !!loadedData && (
-          <Button
-            hola
-            color="green"
-            className="mr10"
-            onClick={(e) => {
-              const w = window.open();
-              w.document.write(JSON.stringify(loadedData));
-            }}
-          >
+        </Button>
+        {
+          !!loadedData && (
+            <Button
+              hola
+              color="green"
+              className="mr10"
+              onClick={(e) => {
+                const w = window.open();
+                w.document.write(JSON.stringify(loadedData));
+              }}
+            >
             Perview loaded Data
-          </Button>
-        )
-      }
-    </div>
+            </Button>
+          )
+        }
+        <Button
+          className="mr10"
+          hola
+          color="default"
+          onClick={(e) => {
+          // document.querySelector('#LoadFile').click();
+            window.open('/Cars3.0.xlsx');
+          }}
+        >
+        Download default data
+        </Button>
+        <span className="flex"></span>
+        <Button
+          className="mr10"
+          hola
+          color="default"
+          icon="github"
+          s="b"
+          onClick={(e) => {
+          // document.querySelector('#LoadFile').click();
+            window.open('https://github.com/SANGET/drag-to-generate-chart-demo');
+          }}
+        >
+          Check in GitHub
+        </Button>
+      </Grid>
+    </Container>
   );
 };
 
@@ -235,7 +262,8 @@ const MainRenderContainer = ({
   selectedItem,
   setSelectedType,
   setActiveComponentByType,
-  dataSource
+  dataSource,
+  closeItem,
 }) => {
   const [{ isOver }, drop] = useDrop({
     accept: ItemTypes.DragTableItem,
@@ -279,6 +307,14 @@ const MainRenderContainer = ({
                     columns={Object.keys(dataSource[0])}
                     dataSource={dataSource}
                   />
+                  <div
+                    className="close"
+                    onClick={(e) => {
+                      closeItem(itemType);
+                    }}
+                  >
+                    <Icon n="times" />
+                  </div>
                 </div>
               </Grid>
             );
@@ -329,6 +365,11 @@ const App = () => {
     });
     setSelectedType(type);
   };
+  const closeItem = (type) => {
+    const nextComponent = Object.assign({}, activeComponent);
+    delete nextComponent[type];
+    setActiveComponent(nextComponent);
+  };
   return (
     <DndProvider backend={Backend}>
       <Container className="App p10" fluid>
@@ -358,6 +399,7 @@ const App = () => {
               selectedItem={selectedItem}
               setSelectedType={setSelectedType}
               dataSource={dataSource}
+              closeItem={closeItem}
               setActiveComponentByType={setActiveComponentByType}
             />
           </Grid>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { FormOptions } from '@deer-ui/core/form-generator/form-filter';
 import { month, getDataForChart } from '../utils/carsdata-filter';
+import { setDataTip } from '../utils/constant';
 
 const defaultTitle = 'chart title';
 
@@ -106,7 +107,7 @@ const LineChartRender = (props) => {
   } = props;
   if (!dateField || !dataFields) {
     return (
-      <h3 className="text-center">Please set data from right panel "Props editor" first</h3>
+      <h3 className="text-center">{setDataTip}</h3>
     );
   }
   return <LineChart {...props} />;

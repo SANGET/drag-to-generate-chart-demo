@@ -1,6 +1,7 @@
 import React, { Fragment, useMemo } from 'react';
 import { FormOptions } from '@deer-ui/core/form-generator/form-generator';
 import { month, getDataForTable } from '../utils/carsdata-filter';
+import { setDataTip } from '../utils/constant';
 
 const getAccessorOptions = ({
   columnsFields,
@@ -230,7 +231,7 @@ const TableFilter = (props) => {
         </thead>
         <tbody>
           <tr>
-            <td><h3>Please set data from right panel "Props editor" first</h3></td>
+            <td><h3>{setDataTip}</h3></td>
           </tr>
         </tbody>
       </table>
