@@ -1,16 +1,18 @@
+/* eslint-disable no-nested-ternary */
 import React, { useState } from 'react';
 import {
-  Grid, FormGenerator, Icon, Container, FormLayout, ToolTip
+  Grid, FormGenerator, Icon, Container, FormLayout, ToolTip, Button
 } from '@deer-ui/core';
 import { useDrag, useDrop, DndProvider } from 'react-dnd';
 import Backend from 'react-dnd-html5-backend';
 
 import Table from './components/table';
 import LineChart from './components/line-chart';
-import CarsDataSource from './utils/carsdata.json';
 
 import './style.scss';
 import { ItemTypes } from './utils/constant';
+
+import { convertXlsxToJson } from './utils/convert2json';
 
 // 测试数据的正确性
 // import { getDataForTable } from './utils/carsdata-filter';
@@ -100,50 +102,63 @@ const ComponentPropsEditor = ({
   );
 };
 
-const convertXlsxToJson = (oEvent) => {
-  return new Promise((resolve) => {
-    // Get The File From The Input
-    const oFile = oEvent.target.files[0];
-    const sFilename = oFile.name;
-    // Create A File Reader HTML5
-    const reader = new FileReader();
-
-    // Ready The Event For When A File Gets Selected
-    reader.onload = (e) => {
-      let data = e.target.result;
-      data = new Uint8Array(data);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const result = {};
-      workbook.SheetNames.forEach((sheetName) => {
-        const roa = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-        if (roa.length) result[sheetName] = roa;
-      });
-
-      const getArray = (res) => {
-        if (!Array.isArray(res)) {
-          Object.keys(res).forEach((item) => {
-            getArray(res[item]);
-          });
-        } else {
-          getArray(res);
-        }
-      };
-      getArray(result);
-    };
-
-    // Tell JS To Start Reading The File.. You could delay this if desired
-    reader.readAsArrayBuffer(oFile);
-  });
-};
-
-const UploadFile = () => {
+const UploadFile = ({
+  onLoadFile
+}) => {
+  const [loadedData, setLoadedData] = useState();
   return (
     <div className="file-loader">
-      <input type="file" onChange={(e) => {
-        const data = convertXlsxToJson(e);
-        console.log(data);
-      }}
+      <input
+        id="LoadFile"
+        style={{
+          position: 'absolute',
+          zIndex: -1,
+          opacity: 0
+        }}
+        type="file" onChange={(e) => {
+          convertXlsxToJson(e)
+            .then((resData) => {
+              onLoadFile && onLoadFile(resData);
+              setLoadedData(resData);
+            });
+        }}
       />
+      <Button
+        className="mr10"
+        onClick={(e) => {
+          document.querySelector('#LoadFile').click();
+        }}
+      >
+        Load xlsx
+      </Button>
+      <Button
+        hola
+        className="mr10"
+        onClick={(e) => {
+        import('./utils/carsdata.json')
+          .then((res) => {
+            onLoadFile(res.Cars);
+            setLoadedData(res.Cars);
+          });
+        }}
+      >
+        Use default data
+      </Button>
+      {
+        !!loadedData && (
+          <Button
+            hola
+            color="green"
+            className="mr10"
+            onClick={(e) => {
+              const w = window.open();
+              w.document.write(JSON.stringify(loadedData));
+            }}
+          >
+            Perview loaded Data
+          </Button>
+        )
+      }
     </div>
   );
 };
@@ -218,6 +233,7 @@ const MainRenderContainer = ({
   selectedItem,
   setSelectedType,
   setActiveComponentByType,
+  dataSource
 }) => {
   const [{ isOver }, drop] = useDrop({
     accept: ItemTypes.DragTableItem,
@@ -231,6 +247,7 @@ const MainRenderContainer = ({
   });
   const activeItemTypes = Object.keys(activeComponent);
   const hasActiveItem = activeItemTypes.length > 0;
+  const loadedData = !!dataSource;
   return (
     <div
       ref={drop}
@@ -242,7 +259,7 @@ const MainRenderContainer = ({
         className="render-container"
       >
         {
-          hasActiveItem ? activeItemTypes.map((itemType) => {
+          loadedData ? (hasActiveItem ? activeItemTypes.map((itemType) => {
             const item = activeComponent[itemType];
             const active = selectedItem && selectedItem.type === itemType;
             return (
@@ -257,8 +274,8 @@ const MainRenderContainer = ({
                 >
                   <item.component
                     {...item.runningProps}
-                    columns={Object.keys(CarsDataSource[0])}
-                    dataSource={CarsDataSource}
+                    columns={Object.keys(dataSource[0])}
+                    dataSource={dataSource}
                   />
                 </div>
               </Grid>
@@ -267,13 +284,25 @@ const MainRenderContainer = ({
             <Grid
               xl={12}
               lg={12}
-              className="no-item-tip text-center"
+              className="no-item-tip text-center t_gray-6"
               style={{
                 fontSize: 30,
-                color: `#DDD`,
+                // color: `#DDD`,
               }}
             >
               Drag a component from left panel to this area.
+            </Grid>
+          )) : (
+            <Grid
+              xl={12}
+              lg={12}
+              className="no-item-tip text-center t_gray-6"
+              style={{
+                fontSize: 30,
+                // color: `#DDD`,
+              }}
+            >
+              Load a xlsx or use default data first.
             </Grid>
           )
         }
@@ -285,6 +314,7 @@ const MainRenderContainer = ({
 const App = () => {
   const [activeComponent, setActiveComponent] = useState({});
   const [selectedType, setSelectedType] = useState('');
+  const [dataSource, setDataSource] = useState();
   const selectedItem = activeComponent[selectedType];
   const setActiveComponentByType = (type, item) => {
     setActiveComponent({
@@ -300,7 +330,11 @@ const App = () => {
   return (
     <DndProvider backend={Backend}>
       <Container className="App p10" fluid>
-        <UploadFile />
+        <UploadFile
+          onLoadFile={(resData) => {
+            setDataSource(resData);
+          }}
+        />
         <Grid container space={10}>
           <Grid
             xl={2}
@@ -321,6 +355,7 @@ const App = () => {
               activeComponent={activeComponent}
               selectedItem={selectedItem}
               setSelectedType={setSelectedType}
+              dataSource={dataSource}
               setActiveComponentByType={setActiveComponentByType}
             />
           </Grid>
@@ -330,7 +365,7 @@ const App = () => {
           >
             <ComponentPropsEditor
               key={selectedType}
-              columns={Object.keys(CarsDataSource[0])}
+              columns={dataSource ? Object.keys(dataSource[0]) : []}
               onChangeValue={(nextValues) => {
               // console.log(nextValues);
                 setActiveComponent({

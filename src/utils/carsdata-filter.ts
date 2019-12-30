@@ -47,11 +47,11 @@ interface GetDataForChartOptions {
   dataFields: Accessor[];
 }
 
-const getDataForChart = (CarsDataSource, options: GetDataForChartOptions) => {
+const getDataForChart = (DataSource, options: GetDataForChartOptions) => {
   const dateForChart = {};
   const { dateField, dataFields, dateFilter } = options;
   const dataLen = getDataLenByDate(dateFilter);
-  CarsDataSource.forEach((item) => {
+  DataSource.forEach((item) => {
     const date = item[dateField];
     const monthNum = (new Date(date)).getMonth();
     dataFields.forEach(({ accessor, filter }) => {
@@ -71,7 +71,7 @@ interface GetDataForTableOptions {
   rowsFields: Accessor[];
   dataFields: Accessor[];
 }
-const getDataForTable = (CarsDataSource, options: GetDataForTableOptions) => {
+const getDataForTable = (DataSource, options: GetDataForTableOptions) => {
   if (!options) return console.log('请传入 options');
   const dataForTable = {};
   const {
@@ -79,7 +79,7 @@ const getDataForTable = (CarsDataSource, options: GetDataForTableOptions) => {
   } = options;
   const dataLen = getDataLenByDate(dateFilter);
   const rowsFieldsLen = rowsFields.length;
-  CarsDataSource.forEach((item) => {
+  DataSource.forEach((item) => {
     const dateAccessor = item[dateField];
     const dataDeeper = (new Date(dateAccessor)).getMonth();
     const rowsFieldFilter = (targetObj, rowFilterDeepIdx = 0) => {
