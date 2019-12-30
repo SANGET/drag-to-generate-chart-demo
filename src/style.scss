@@ -12,6 +12,7 @@
   overflow: auto;
   position: relative;
   transition: box-shadow 0.2s ease;
+
   &.active {
     box-shadow: 0 0 12px rgba($themeColor, 0.4);
     z-index: 1;
@@ -20,6 +21,7 @@
 
 .renderer {
   min-height: 90vh;
+
   &.overing {
     background-color: rgba($themeColor, 0.2);
   }
@@ -27,4 +29,13 @@
 
 .table {
   background-color: #FFF;
+}
+
+.drag-area {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
 }

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Grid, FormGenerator, Icon, Container
+  Grid, FormGenerator, Icon, Container, FormLayout, ToolTip
 } from '@deer-ui/core';
 import { useDrag, useDrop, DndProvider } from 'react-dnd';
 import Backend from 'react-dnd-html5-backend';
 
-import Table from './components/table2';
+import Table from './components/table';
 import LineChart from './components/line-chart';
 import CarsDataSource from './utils/carsdata.json';
 
@@ -13,41 +13,41 @@ import './style.scss';
 import { ItemTypes } from './utils/constant';
 
 // 测试数据的正确性
-import { getDataForTable } from './utils/carsdata-filter';
+// import { getDataForTable } from './utils/carsdata-filter';
 
-const data = getDataForTable(CarsDataSource, {
-  dateField: 'DATE',
-  dateFilter: 'month',
-  columnsFields: {
-    accessor: '',
-  },
-  rowsFields: [{
-    accessor: 'BRAND',
-  }, {
-    accessor: 'TYPE',
-  }, {
-    accessor: 'NAME',
-  }],
-  dataFields: [{
-    accessor: 'COUNT',
-    filter: (str, currData) => {
-      return +str + (+currData.COUNT || 0);
-    }
-  }, {
-    accessor: 'PRICE',
-    filter: (str, currData) => {
-      return +str + (+currData.PRICE || 0);
-    }
-  }],
-});
-console.log(data);
+// const data = getDataForTable(CarsDataSource, {
+//   dateField: 'DATE',
+//   dateFilter: 'month',
+//   columnsFields: {
+//     accessor: '',
+//   },
+//   rowsFields: [{
+//     accessor: 'BRAND',
+//   }, {
+//     accessor: 'TYPE',
+//   }, {
+//     accessor: 'NAME',
+//   }],
+//   dataFields: [{
+//     accessor: 'COUNT',
+//     filter: (str, currData) => {
+//       return +str + (+currData.COUNT || 0);
+//     }
+//   }, {
+//     accessor: 'PRICE',
+//     filter: (str, currData) => {
+//       return +str + (+currData.PRICE || 0);
+//     }
+//   }],
+// });
+// console.log(data);
 
 const createViewType = [
   {
     type: 'lineChart',
     title: 'Line Chart',
     component: LineChart,
-    icon: <Icon n="chart-line" style={{ fontSize: 20 }} />,
+    icon: "chart-line",
     layoutInfo: {
       xl: 6,
       lg: 6,
@@ -57,7 +57,7 @@ const createViewType = [
     type: 'pivoTable',
     title: 'Pivot Table',
     component: Table,
-    icon: <Icon n="table" style={{ fontSize: 20 }} />,
+    icon: "table",
     layoutInfo: {
       xl: 12,
       lg: 12,
@@ -75,17 +75,74 @@ const ComponentPropsEditor = ({
   const { genEditablePropsConfig } = component;
   return (
     <div className="chart-editor">
-      <FormGenerator
+      <FormLayout
         formOptions={['Props editor', ...genEditablePropsConfig(columns)]}
+        formBtns={[
+          {
+            action: (formRef) => {
+              const checkRes = formRef.checkForm();
+              // console.log(checkRes);
+              onChangeValue(formRef.value);
+            },
+            text: 'Update UI'
+          }
+        ]}
         ref={(e) => {
           if (e) {
-            e.changeValues(runningProps, true);
+            e.formHelper.changeValues(runningProps, true);
           }
         }}
         layout="vertical"
-        onChange={(values, ref, val) => {
-          onChangeValue(values);
-        }}
+        // onChange={(values, ref, val) => {
+        // }}
+      />
+    </div>
+  );
+};
+
+const convertXlsxToJson = (oEvent) => {
+  return new Promise((resolve) => {
+    // Get The File From The Input
+    const oFile = oEvent.target.files[0];
+    const sFilename = oFile.name;
+    // Create A File Reader HTML5
+    const reader = new FileReader();
+
+    // Ready The Event For When A File Gets Selected
+    reader.onload = (e) => {
+      let data = e.target.result;
+      data = new Uint8Array(data);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const result = {};
+      workbook.SheetNames.forEach((sheetName) => {
+        const roa = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+        if (roa.length) result[sheetName] = roa;
+      });
+
+      const getArray = (res) => {
+        if (!Array.isArray(res)) {
+          Object.keys(res).forEach((item) => {
+            getArray(res[item]);
+          });
+        } else {
+          getArray(res);
+        }
+      };
+      getArray(result);
+    };
+
+    // Tell JS To Start Reading The File.. You could delay this if desired
+    reader.readAsArrayBuffer(oFile);
+  });
+};
+
+const UploadFile = () => {
+  return (
+    <div className="file-loader">
+      <input type="file" onChange={(e) => {
+        const data = convertXlsxToJson(e);
+        console.log(data);
+      }}
       />
     </div>
   );
@@ -107,7 +164,7 @@ const DragItem = ({
   );
 };
 
-const ChartGroup = ({
+const ChartSelectorGroup = ({
   setActiveComponent,
   activeComponent,
   setSelectedType,
@@ -127,7 +184,7 @@ const ChartGroup = ({
                 className="action-item"
                 key={item.title}
               >
-                <h5>
+                <h5 className="t_gray-6">
                   {title}
                 </h5>
                 <DragItem
@@ -137,7 +194,15 @@ const ChartGroup = ({
                     setActiveComponentByType(type, item);
                   }}
                 >
-                  {icon}
+                  <ToolTip
+                    n={icon}
+                    title={type}
+                    className="t_blue"
+                    clickToClose
+                    style={{
+                      fontSize: 22,
+                    }}
+                  />
                 </DragItem>
               </div>
             );
@@ -235,12 +300,13 @@ const App = () => {
   return (
     <DndProvider backend={Backend}>
       <Container className="App p10" fluid>
+        <UploadFile />
         <Grid container space={10}>
           <Grid
             xl={2}
             lg={2}
           >
-            <ChartGroup
+            <ChartSelectorGroup
               setSelectedType={setSelectedType}
               activeComponent={activeComponent}
               setActiveComponent={setActiveComponent}

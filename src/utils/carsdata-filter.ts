@@ -9,50 +9,20 @@
 //     };
 //   };
 // }
-interface CarsDataForChartStruct {
-  totalSales: number[];
-  counts: number[];
-}
+// interface CarsDataForChartStruct {
+//   totalSales: number[];
+//   counts: number[];
+// }
 // const CarsDataForPivotTable: CarsDataForPivotTableStruct = {};
-const CarsDataForChart: CarsDataForChartStruct = {
-  totalSales: [],
-  counts: [],
-};
+// const CarsDataForChart: CarsDataForChartStruct = {
+//   totalSales: [],
+//   counts: [],
+// };
 
 export const month = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
-
-const getDataForChart = (CarsDataSource) => {
-  if (CarsDataForChart.totalSales.length === 0) {
-    CarsDataForChart.totalSales = new Array(month.length);
-    CarsDataForChart.counts = new Array(month.length);
-  }
-  CarsDataSource.forEach((item) => {
-    const {
-      TYPE, DATE, NAME, MODEL, TRANS, BRAND, COUNT, PRICE, TOTAL
-    } = item;
-    const monthNum = (new Date(DATE)).getMonth();
-    CarsDataForChart.totalSales[monthNum] = (+CarsDataForChart.totalSales[monthNum] || 0) + (+TOTAL || 0);
-    CarsDataForChart.counts[monthNum] = (+CarsDataForChart.counts[monthNum] || 0) + (+COUNT || 0);
-  });
-
-  return CarsDataForChart;
-};
-
-interface Accessor {
-  accessor: string;
-  filter?: (accessor: string, currData: {}) => any;
-}
-
-interface GetDataForTableOptions {
-  dateField: string;
-  dateFilter: 'month' | 'year';
-  columnsFields: Accessor;
-  rowsFields: Accessor[];
-  dataFields: Accessor[];
-}
 const getDataLenByDate = (dateFilter) => {
   let dataLen;
   switch (dateFilter) {
@@ -65,6 +35,42 @@ const getDataLenByDate = (dateFilter) => {
   }
   return dataLen;
 };
+
+interface Accessor {
+  accessor: string;
+  filter?: (accessor: string, currData: {}) => any;
+}
+
+interface GetDataForChartOptions {
+  dateField: string;
+  dateFilter: 'month' | 'year';
+  dataFields: Accessor[];
+}
+
+const getDataForChart = (CarsDataSource, options: GetDataForChartOptions) => {
+  const dateForChart = {};
+  const { dateField, dataFields, dateFilter } = options;
+  const dataLen = getDataLenByDate(dateFilter);
+  CarsDataSource.forEach((item) => {
+    const date = item[dateField];
+    const monthNum = (new Date(date)).getMonth();
+    dataFields.forEach(({ accessor, filter }) => {
+      if (!dateForChart[accessor]) dateForChart[accessor] = new Array(dataLen);
+      const currContent = item[accessor];
+      dateForChart[accessor][monthNum] = filter ? filter(currContent, dateForChart[accessor][monthNum]) : currContent;
+    });
+  });
+
+  return dateForChart;
+};
+
+interface GetDataForTableOptions {
+  dateField: string;
+  dateFilter: 'month' | 'year';
+  columnsFields: Accessor;
+  rowsFields: Accessor[];
+  dataFields: Accessor[];
+}
 const getDataForTable = (CarsDataSource, options: GetDataForTableOptions) => {
   if (!options) return console.log('请传入 options');
   const dataForTable = {};

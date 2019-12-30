@@ -1,149 +1,244 @@
-import React from 'react';
-import styled from 'styled-components';
-import { useTable, useExpanded } from 'react-table';
+import React, { Fragment, useMemo } from 'react';
+import { FormOptions } from '@deer-ui/core/form-generator/form-generator';
+import { month, getDataForTable } from '../utils/carsdata-filter';
 
-import makeData from './makeData';
-import { month } from '../utils/cars-data';
-
-const Styles = styled.div`
-  padding: 1rem;
-
-  table {
-    border-spacing: 0;
-    border: 1px solid black;
-
-    tr {
-      :last-child {
-        td {
-          border-bottom: 0;
-        }
-      }
-    }
-
-    th,
-    td {
-      margin: 0;
-      padding: 0.5rem;
-      border-bottom: 1px solid black;
-      border-right: 1px solid black;
-
-      :last-child {
-        border-right: 0;
-      }
-    }
-  }
-`;
-
-function Table({ columns: userColumns, data }) {
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    state: { expanded },
-  } = useTable(
-    {
-      columns: userColumns,
-      data,
+const getAccessorOptions = ({
+  columnsFields,
+  dateField,
+  rowsFields,
+  dataFields,
+}) => {
+  return {
+    dateField,
+    dateFilter: 'month',
+    columnsFields: {
+      accessor: columnsFields,
     },
-    useExpanded // Use the useExpanded plugin hook
-  );
+    rowsFields: rowsFields.map((accessor) => ({
+      accessor,
+    })),
+    dataFields: dataFields.map((accessor) => ({
+      accessor,
+      filter: (str, currData) => {
+        return isNaN(+str) ? str : +str + (+currData[accessor] || 0);
+      }
+    })),
+  };
+  // return {
+  //   dateField: 'DATE',
+  //   dateFilter: 'month',
+  //   columnsFields: {
+  //     accessor: columnsFields,
+  //   },
+  //   rowsFields: [{
+  //     accessor: 'BRAND',
+  //   }, {
+  //     accessor: 'TYPE',
+  //   }, {
+  //     accessor: 'NAME',
+  //   }],
+  //   dataFields: [{
+  //     accessor: 'COUNT',
+  //     filter: (str, currData) => {
+  //       return +str + (+currData.COUNT || 0);
+  //     }
+  //   }, {
+  //     accessor: 'PRICE',
+  //     filter: (str, currData) => {
+  //       return +str + (+currData.PRICE || 0);
+  //     }
+  //   }],
+  // };
+};
 
+const Table = ({
+  dataSource, columns,
+  columnsFields,
+  dateField,
+  rowsFields,
+  dataFields,
+}) => {
+  const colums = month;
+  const dataFieldLen = dataFields.length;
+  const colSpan = 12 * dataFieldLen + 1;
+  const accessorOptions = getAccessorOptions({
+    columnsFields,
+    dateField,
+    rowsFields,
+    dataFields,
+  });
+  const data = useMemo(
+    () => getDataForTable(dataSource, accessorOptions),
+    [dataSource, accessorOptions]
+  );
   return (
-    <>
-      <table {...getTableProps()}>
+    <table className="table">
+      <thead>
+        <tr>
+          <th>-</th>
+          {
+            colums.map((item) => {
+              return (
+                <th key={item} colSpan={dataFieldLen}>{item}</th>
+              );
+            })
+          }
+        </tr>
+        <tr>
+          <th>Model</th>
+          {
+            colums.map((item, idx1) => {
+              const THs = dataFields.map((dataField, idx2) => {
+                return (
+                  <th key={`${idx1}_${idx2}`}>{dataField}</th>
+                );
+              });
+              return THs;
+              // return (
+              //   <Fragment key={item}>
+              //     <th>Count</th>
+              //     <th>Price</th>
+              //   </Fragment>
+              // );
+            })
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          (() => {
+            let res: JSX.Element[] = [];
+            const getTrItems = (deeper, srcData) => {
+              const _res: JSX.Element[] = [];
+              if (deeper < accessorOptions.rowsFields.length) {
+                const currDataFields = Object.keys(srcData);
+                currDataFields.forEach((field, idx) => {
+                  const rowKey = `${field}_${idx}`;
+                  const paddingLeft = 15 * (deeper + 1);
+                  if (deeper === accessorOptions.rowsFields.length - 1) {
+                  // 处理最后的数据
+                    const finalData = srcData[field];
+                    _res.push((
+                      <tr key={rowKey}>
+                        <td style={{ paddingLeft }}>
+                          {field}
+                        </td>
+                        {
+                          (() => {
+                            const result: JSX.Element[] = [];
+                            // Object.keys(srcData).map((finalDataField) => {
+                            for (let i = 0; i < finalData.length; i++) {
+                              const _data = finalData[i] || {};
+                              accessorOptions.dataFields.map(({ accessor }, dataIdx) => {
+                                const content = _data[accessor] || '-';
+                                result.push(
+                                  <td key={`${rowKey}_${content}_${i}_${dataIdx}`}>{content}</td>
+                                );
+                              });
+                            }
+                            // });
+                            return result;
+                          })()
+                        }
+                      </tr>
+                    ));
+                  } else {
+                    _res.push(
+                      <Fragment key={rowKey}>
+                        <tr>
+                          <td
+                            colSpan={colSpan}
+                            style={{ paddingLeft }}
+                          >{field}</td>
+                        </tr>
+                        {getTrItems(deeper + 1, srcData[field])}
+                      </Fragment>
+                    );
+                  }
+                });
+              }
+              return _res;
+            };
+            res = getTrItems(0, data);
+            return res;
+          })()
+        }
+      </tbody>
+    </table>
+  );
+};
+
+const options = (columns): FormOptions => {
+  const columnValues = {};
+  columns.map((column) => {
+    columnValues[column] = column;
+  });
+  return [
+    {
+      type: 'radio',
+      title: 'Column fields',
+      ref: 'columnsFields',
+      defaultValue: 'month',
+      // needCancel: false,
+      required: true,
+      values: {
+        month: 'month',
+        // season: 'season',
+        // halflYear: 'halflYear',
+        // fullYear: 'fullYear',
+      }
+    },
+    {
+      type: 'radio',
+      title: 'Date fields',
+      ref: 'dateField',
+      required: true,
+      values: columnValues
+    },
+    {
+      type: 'select',
+      title: 'Rows fields',
+      ref: 'rowsFields',
+      isMultiple: true,
+      displayMultipleItems: true,
+      required: true,
+      values: columnValues
+    },
+    {
+      type: 'select',
+      title: 'Data fields',
+      ref: 'dataFields',
+      isMultiple: true,
+      displayMultipleItems: true,
+      required: true,
+      values: columnValues
+    },
+  ];
+};
+
+const TableFilter = (props) => {
+  const {
+    columnsFields,
+    dateField,
+    rowsFields,
+    dataFields,
+  } = props;
+  if (!rowsFields || !dateField || !columnsFields || !dataFields) {
+    return (
+      <table className="table">
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
-              ))}
-            </tr>
-          ))}
         </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row, i) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()}>
-                {row.cells.map((cell) => {
-                  return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;
-                })}
-              </tr>
-            );
-          })}
+        <tbody>
+          <tr>
+            <td><h3>Please set data from right panel "Props editor" first</h3></td>
+          </tr>
         </tbody>
       </table>
-      <br />
-      <div>Showing the first 20 results of {rows.length} rows</div>
-      <pre>
-        <code>{JSON.stringify({ expanded }, null, 2)}</code>
-      </pre>
-    </>
-  );
-}
+    );
+  }
+  return <Table {...props} />;
+};
 
-function App() {
-  const columns = React.useMemo(
-    () => [
-      {
-        // Build our expander column
-        Header: () => null, // No header, please
-        id: 'expander', // Make sure it has an ID
-        Cell: ({ row }) =>
-          // Use the row.canExpand and row.getExpandedToggleProps prop getter
-          // to build the toggle for expanding a row
-          (row.canExpand ? (
-            <span
-              {...row.getExpandedToggleProps({
-                style: {
-                  // We can even use the row.depth property
-                  // and paddingLeft to indicate the depth
-                  // of the row
-                  paddingLeft: `${row.depth * 2}rem`,
-                },
-              })}
-            >
-              {row.isExpanded ? '-' : '+'}
-            </span>
-          ) : null),
-      },
-      {
-        Header: '-',
-        columns: [
-          {
-            Header: 'Model',
-            accessor: 'carModel'
-          },
-        ]
-      },
-      ...month.map((item, idx) => {
-        return {
-          Header: item,
-          columns: [
-            {
-              Header: 'Count',
-              accessor: 'count'
-            },
-            {
-              Header: 'Price',
-              accessor: 'price'
-            },
-          ]
-        };
-      }),
-    ],
-    []
-  );
+TableFilter.genEditablePropsConfig = options;
 
-  const data = React.useMemo(() => makeData(5, 5, 5), []);
-
-  return (
-    <Styles>
-      <Table columns={columns} data={data} />
-    </Styles>
-  );
-}
-
-export default App;
+export default TableFilter;

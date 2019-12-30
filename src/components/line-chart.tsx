@@ -2,18 +2,43 @@ import React, { useEffect, useMemo } from 'react';
 import { FormOptions } from '@deer-ui/core/form-generator/form-filter';
 import { month, getDataForChart } from '../utils/carsdata-filter';
 
-const LineChart = ({
-  dataSource, title = 'Sales trend'
+const defaultTitle = 'chart title';
+
+const getAccessorOptions = ({
+  dateField,
+  dataFields,
 }) => {
-  const DataForChart = useMemo(() => getDataForChart(dataSource), [dataSource]);
+  return {
+    dateField,
+    dateFilter: 'month',
+    dataFields: dataFields.map((accessor) => ({
+      accessor,
+      filter: (str, currData) => {
+        return isNaN(+str) ? str : +str + (+currData || 0);
+      }
+    })),
+  };
+};
+const LineChart = ({
+  dataSource, title = defaultTitle,
+  dateField, dataFields
+}) => {
+  const accessorOptions = getAccessorOptions({
+    dateField,
+    dataFields,
+  });
+  const DataForChart = useMemo(
+    () => getDataForChart(dataSource, accessorOptions),
+    [dataSource, accessorOptions]
+  );
   useEffect(() => {
-    if (!window.Highcharts) return;
-    const myChart = window.Highcharts.chart('chart', {
+    if (!window.Highcharts) return () => null;
+    const highChart = window.Highcharts.chart('chart', {
       chart: {
         type: 'line'
       },
       title: {
-        text: 'Sales trend'
+        text: ''
       },
       xAxis: {
         categories: month
@@ -29,34 +54,64 @@ const LineChart = ({
           data: DataForChart[label]
         };
       })
-      // series: [{
-      //   name: 'Jane',
-      //   data: [1, 0, 4, 1, 2, 3, 4, 5, 2, 1, 5, 1]
-      // }, {
-      //   name: 'John',
-      //   data: [5, 7, 3, 5, 7, 3, 5, 7, 3, 5, 7, 3]
-      // }]
     });
     return () => {
+      highChart.destroy();
     };
-  }, []);
+  }, [dateField, dataFields]);
   return (
     <div>
-      <h1>{title}</h1>
+      <h1 className="ps10">{title}</h1>
       <div className="chart" id="chart"></div>
     </div>
   );
 };
 
-const options = (columns): FormOptions => [
-  {
-    title: '标题',
-    type: 'input',
-    defaultValue: 'Sales trend',
-    ref: 'title'
-  },
-];
 
-LineChart.genEditablePropsConfig = options;
+const options = (columns): FormOptions => {
+  const columnValues = {};
+  columns.map((column) => {
+    columnValues[column] = column;
+  });
+  return [
+    {
+      title: 'Title',
+      type: 'input',
+      defaultValue: defaultTitle,
+      ref: 'title'
+    },
+    {
+      type: 'radio',
+      title: 'Date fields',
+      ref: 'dateField',
+      required: true,
+      values: columnValues
+    },
+    {
+      type: 'select',
+      title: 'Data fields',
+      ref: 'dataFields',
+      isMultiple: true,
+      required: true,
+      displayMultipleItems: true,
+      values: columnValues
+    },
+  ];
+};
 
-export default LineChart;
+const LineChartRender = (props) => {
+  const {
+    dateField,
+    dataFields,
+  } = props;
+  if (!dateField || !dataFields) {
+    return (
+      <h3 className="text-center">Please set data from right panel "Props editor" first</h3>
+    );
+  }
+  return <LineChart {...props} />;
+};
+
+LineChartRender.genEditablePropsConfig = options;
+
+export default LineChartRender;
