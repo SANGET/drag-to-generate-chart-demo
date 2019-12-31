@@ -95,12 +95,6 @@ const Table = ({
                 );
               });
               return THs;
-              // return (
-              //   <Fragment key={item}>
-              //     <th>Count</th>
-              //     <th>Price</th>
-              //   </Fragment>
-              // );
             })
           }
         </tr>
@@ -127,7 +121,6 @@ const Table = ({
                         {
                           (() => {
                             const result: JSX.Element[] = [];
-                            // Object.keys(srcData).map((finalDataField) => {
                             for (let i = 0; i < finalData.length; i++) {
                               const _data = finalData[i] || {};
                               accessorOptions.dataFields.map(({ accessor }, dataIdx) => {
@@ -137,7 +130,6 @@ const Table = ({
                                 );
                               });
                             }
-                            // });
                             return result;
                           })()
                         }

@@ -1,6 +1,32 @@
 import React, { useState } from 'react';
-import { Container, Grid, Button } from '@deer-ui/core';
+import { Container } from '@deer-ui/core/container';
+import { Grid } from '@deer-ui/core/grid';
+import { Button } from '@deer-ui/core/button';
+import Alert from '@deer-ui/core/alert/alert';
+import { ShowModal } from '@deer-ui/core/modal';
 import { convertXlsxToJson } from '../utils/convert2json';
+
+const HowToUse = () => {
+  return (
+    <div className="how-to-use">
+      <Alert
+        title="How to use this app"
+        texts={[
+          'First step: you need to upload a xlsx as data source.',
+          'Second step: drag a Chart or Table from left panel to middle panal.',
+          'Third step: edit the props of Chart or Table in right panel to setup data fields.',
+        ]}
+      />
+      <hr />
+      <h4 className="ps10">The props meaning of this app</h4>
+      <img
+        style={{ maxWidth: '100%' }}
+        src="/how-to-use.jpg"
+        alt="how-to-use"
+      />
+    </div>
+  );
+};
 
 const UploadFile = ({
   onLoadFile
@@ -69,7 +95,12 @@ const UploadFile = ({
           color="black"
           onClick={(e) => {
           // document.querySelector('#LoadFile').click();
-            window.open('/how-to-use.jpg');
+            // window.open('/how-to-use.jpg');
+            ShowModal({
+              title: 'How to use',
+              width: 1200,
+              children: <HowToUse />
+            });
           }}
         >
           How to use
@@ -82,8 +113,15 @@ const UploadFile = ({
               color="green"
               className="mr10"
               onClick={(e) => {
-                const w = window.open();
-                w.document.write(JSON.stringify(loadedData));
+                ShowModal({
+                  title: 'Data source',
+                  width: 1200,
+                  children: () => (
+                    <div className="p20">
+                      {JSON.stringify(loadedData)}
+                    </div>
+                  )
+                });
               }}
             >
             Perview loaded Data
