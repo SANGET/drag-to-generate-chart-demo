@@ -1,6 +1,10 @@
 @import '@deer-ui/core/style/default.scss';
 // @import '@deer-ui/core/style/transition.scss';
 
+body {
+  background-color: #FFF;
+}
+
 #Main {
   /*
     写什么都可以
@@ -47,5 +51,42 @@
     top: 0;
     padding: 10px;
     z-index: 1;
+  }
+}
+
+.App {
+  // padding-top: 50px;
+}
+
+.file-loader {
+  transition: all ease 0.2s;
+  position: relative;
+
+  .section-mark {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 11;
+    background-color: rgba(#000, 0.2);
+  }
+
+  &.has-data {
+    .section-mark {
+      background-color: transparent;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .content {
+      background-color: transparent;
+    }
+  }
+
+  .content {
+    position: relative;
+    background-color: #FFF;
+    z-index: 12;
   }
 }
