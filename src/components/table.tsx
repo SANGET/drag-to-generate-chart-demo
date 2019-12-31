@@ -194,6 +194,7 @@ const options = (columns): FormOptions => {
       title: 'Date fields',
       ref: 'dateField',
       required: true,
+      // defaultValue: 'DATE',
       values: columnValues
     },
     {

@@ -6,8 +6,6 @@ import { Container } from '@deer-ui/core/container';
 import { DndProvider } from 'react-dnd';
 import Backend from 'react-dnd-html5-backend';
 
-import { ItemTypes } from './utils/constant';
-
 import UploadFile from './components/uploader';
 import ChartSelectorGroup from './components/chart-selector';
 import MainRenderContainer from './components/component-renderer';

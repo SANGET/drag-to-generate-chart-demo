@@ -62,6 +62,18 @@ const UploadFile = ({
         >
           Download default xlsx
         </Button>
+        <Button
+          className="mr10"
+          hola
+          icon="question"
+          color="black"
+          onClick={(e) => {
+          // document.querySelector('#LoadFile').click();
+            window.open('/how-to-use.jpg');
+          }}
+        >
+          How to use
+        </Button>
         {
           !!loadedData && (
             <Button
