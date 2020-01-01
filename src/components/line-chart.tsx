@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { FormOptions } from '@deer-ui/core/form-generator/form-filter';
-import { month, getDataForChart } from '../utils/carsdata-filter';
+import { month, getDataForChart } from '../utils/data-filter';
 import { setDataTip } from '../utils/constant';
 
 const defaultTitle = 'chart title';

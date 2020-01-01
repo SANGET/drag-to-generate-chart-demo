@@ -110,7 +110,7 @@ const UploadFile = ({
             <Button
               hola
               icon="file-pdf"
-              color="green"
+              color="black"
               className="mr10"
               onClick={(e) => {
                 ShowModal({

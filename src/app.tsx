@@ -15,36 +15,6 @@ import './style.scss';
 
 if (window.OnLuanched) window.OnLuanched();
 
-// 测试数据的正确性
-// import { getDataForTable } from './utils/carsdata-filter';
-
-// const data = getDataForTable(CarsDataSource, {
-//   dateField: 'DATE',
-//   dateFilter: 'month',
-//   columnsFields: {
-//     accessor: '',
-//   },
-//   rowsFields: [{
-//     accessor: 'BRAND',
-//   }, {
-//     accessor: 'TYPE',
-//   }, {
-//     accessor: 'NAME',
-//   }],
-//   dataFields: [{
-//     accessor: 'COUNT',
-//     filter: (str, currData) => {
-//       return +str + (+currData.COUNT || 0);
-//     }
-//   }, {
-//     accessor: 'PRICE',
-//     filter: (str, currData) => {
-//       return +str + (+currData.PRICE || 0);
-//     }
-//   }],
-// });
-// console.log(data);
-
 const App = () => {
   const [activeComponent, setActiveComponent] = useState({});
   const [selectedType, setSelectedType] = useState('');

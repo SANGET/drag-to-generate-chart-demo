@@ -1,23 +1,32 @@
 /* eslint-disable no-param-reassign */
-// interface CarsDataForPivotTableStruct {
-//   [brand: string]: {
-//     [type: string]: {
-//       [carName: string]: ({
-//         count: number;
-//         price: number;
-//       })[];
-//     };
-//   };
-// }
-// interface CarsDataForChartStruct {
-//   totalSales: number[];
-//   counts: number[];
-// }
-// const CarsDataForPivotTable: CarsDataForPivotTableStruct = {};
-// const CarsDataForChart: CarsDataForChartStruct = {
-//   totalSales: [],
-//   counts: [],
-// };
+
+// 测试数据的正确性
+// const data = getDataForTable(CarsDataSource, {
+//   dateField: 'DATE',
+//   dateFilter: 'month',
+//   columnsFields: {
+//     accessor: '',
+//   },
+//   rowsFields: [{
+//     accessor: 'BRAND',
+//   }, {
+//     accessor: 'TYPE',
+//   }, {
+//     accessor: 'NAME',
+//   }],
+//   dataFields: [{
+//     accessor: 'COUNT',
+//     filter: (str, currData) => {
+//       return +str + (+currData.COUNT || 0);
+//     }
+//   }, {
+//     accessor: 'PRICE',
+//     filter: (str, currData) => {
+//       return +str + (+currData.PRICE || 0);
+//     }
+//   }],
+// });
+// console.log(data);
 
 export const month = [
   "January", "February", "March", "April", "May", "June",
