@@ -6,15 +6,14 @@ import { setDataTip } from '../utils/constant';
 const getAccessorOptions = ({
   columnsFields,
   dateField,
+  yearOptions,
   rowsFields,
   dataFields,
 }) => {
   return {
     dateField,
-    dateFilter: 'month',
-    columnsFields: {
-      accessor: columnsFields,
-    },
+    dateFilter: columnsFields,
+    columnsFields,
     rowsFields: rowsFields.map((accessor) => ({
       accessor,
     })),
@@ -25,49 +24,33 @@ const getAccessorOptions = ({
       }
     })),
   };
-  // return {
-  //   dateField: 'DATE',
-  //   dateFilter: 'month',
-  //   columnsFields: {
-  //     accessor: columnsFields,
-  //   },
-  //   rowsFields: [{
-  //     accessor: 'BRAND',
-  //   }, {
-  //     accessor: 'TYPE',
-  //   }, {
-  //     accessor: 'NAME',
-  //   }],
-  //   dataFields: [{
-  //     accessor: 'COUNT',
-  //     filter: (str, currData) => {
-  //       return +str + (+currData.COUNT || 0);
-  //     }
-  //   }, {
-  //     accessor: 'PRICE',
-  //     filter: (str, currData) => {
-  //       return +str + (+currData.PRICE || 0);
-  //     }
-  //   }],
-  // };
 };
+
+// const ColumnMapper = () => {
+//   return {
+//     month: month,
+//     year:
+//   }
+// }
 
 const Table = ({
   dataSource, columns,
   columnsFields,
   dateField,
   rowsFields,
+  yearOptions,
   dataFields,
 }) => {
-  const colums = month;
   const dataFieldLen = dataFields.length;
-  const colSpan = 12 * dataFieldLen + 1;
   const accessorOptions = getAccessorOptions({
     columnsFields,
     dateField,
     rowsFields,
+    yearOptions,
     dataFields,
   });
+  const colums = [columnsFields];
+  const colSpan = colums.length * dataFieldLen + 1;
   const data = useMemo(
     () => getDataForTable(dataSource, accessorOptions),
     [dataSource, accessorOptions]
@@ -80,7 +63,7 @@ const Table = ({
           {
             colums.map((item) => {
               return (
-                <th key={item} colSpan={dataFieldLen}>{item}</th>
+                <th key={item} colSpan={colSpan}>{item}</th>
               );
             })
           }
@@ -161,34 +144,89 @@ const Table = ({
   );
 };
 
-const options = (columns): FormOptions => {
-  const columnValues = {};
-  columns.map((column) => {
-    columnValues[column] = column;
+const dateFieldReg = /date/i;
+
+const getDateOptions = ({
+  dataSource, dateField, columnValues
+}): FormOptions => {
+  const yearValues = {};
+  const isValidDate = dateFieldReg.test(dateField);
+  if (!isValidDate) return [];
+  const yearOptions = {
+    type: 'checkbox',
+    ref: 'yearOptions',
+    title: 'Year options',
+    required: true,
+    values: {}
+  };
+  const pickDateField = {
+    type: 'select',
+    title: 'Date fields',
+    ref: 'dateField',
+    required: true,
+    defaultValue: dateField,
+    values: columnValues,
+  };
+  dataSource.forEach((item) => {
+    const currYear = item[dateField];
+    const year = (new Date(currYear)).getFullYear();
+    if (!isNaN(year)) {
+      yearValues[year] = year;
+    }
   });
+  yearOptions.values = yearValues;
+  return [
+    pickDateField,
+    yearOptions
+  ];
+};
+
+const options = (columns, innerValue, dataSource): FormOptions => {
+  const { columnsFields, rowsFields, dataFields } = innerValue;
+  const columnValues = {};
+  const rowsValues = {};
+  const dataValues = {};
+  let defaultDateField;
+  columns.forEach((column) => {
+    columnValues[column] = column;
+    if (dateFieldReg.test(column)) {
+      defaultDateField = column;
+    }
+    const isColumnMark = columnsFields && columnsFields.indexOf(column) === -1;
+    const isRowMark = rowsFields && rowsFields.indexOf(column) === -1;
+    if (isColumnMark) {
+      rowsValues[column] = column;
+    }
+    if (isColumnMark && isRowMark) {
+      dataValues[column] = column;
+    }
+  });
+  // console.log(innerValue)
+  const dateField = innerValue.dateField || defaultDateField;
+  const isDateColumn = ['month', 'year'].indexOf(columnsFields) !== -1;
+  const dateColumn = isDateColumn ? getDateOptions({
+    dataSource, dateField, columnValues
+  }) : [];
   return [
     {
-      type: 'radio',
+      type: 'select',
       title: 'Column fields',
       ref: 'columnsFields',
-      defaultValue: 'month',
+      // defaultValue: 'month',
       // needCancel: false,
+      // isMultiple: true,
+      displayMultipleItems: true,
       required: true,
       values: {
+        ...columnValues,
         month: 'month',
+        // year: 'year',
         // season: 'season',
         // halflYear: 'halflYear',
         // fullYear: 'fullYear',
       }
     },
-    {
-      type: 'radio',
-      title: 'Date fields',
-      ref: 'dateField',
-      required: true,
-      // defaultValue: 'DATE',
-      values: columnValues
-    },
+    ...dateColumn,
     {
       type: 'select',
       title: 'Rows fields',
@@ -196,7 +234,7 @@ const options = (columns): FormOptions => {
       isMultiple: true,
       displayMultipleItems: true,
       required: true,
-      values: columnValues
+      values: rowsValues
     },
     {
       type: 'select',
@@ -205,7 +243,7 @@ const options = (columns): FormOptions => {
       isMultiple: true,
       displayMultipleItems: true,
       required: true,
-      values: columnValues
+      values: dataValues
     },
   ];
 };
@@ -213,11 +251,10 @@ const options = (columns): FormOptions => {
 const TableFilter = (props) => {
   const {
     columnsFields,
-    dateField,
     rowsFields,
     dataFields,
   } = props;
-  if (!rowsFields || !dateField || !columnsFields || !dataFields) {
+  if (!rowsFields || !columnsFields || !dataFields) {
     return (
       <table className="table">
         <thead>

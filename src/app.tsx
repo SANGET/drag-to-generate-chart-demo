@@ -70,21 +70,26 @@ const App = () => {
             xl={2}
             lg={2}
           >
-            <ComponentPropsEditor
-              key={selectedType}
-              columns={dataSource ? Object.keys(dataSource[0]) : []}
-              onChangeValue={(nextValues) => {
-              // console.log(nextValues);
-                setActiveComponent({
-                  ...activeComponent,
-                  [selectedType]: Object.assign({}, selectedItem,
-                    {
-                      runningProps: Object.assign({}, selectedItem.runningProps, nextValues)
-                    })
-                });
-              }}
-              selectedComponent={selectedItem}
-            />
+            {
+              selectedItem && (
+                <ComponentPropsEditor
+                  key={selectedType}
+                  columns={dataSource ? Object.keys(dataSource[0]) : []}
+                  selectedComponent={selectedItem}
+                  dataSource={dataSource}
+                  onChangeValue={(nextValues) => {
+                    // console.log(nextValues);
+                    setActiveComponent({
+                      ...activeComponent,
+                      [selectedType]: Object.assign({}, selectedItem,
+                        {
+                          runningProps: Object.assign({}, selectedItem.runningProps, nextValues)
+                        })
+                    });
+                  }}
+                />
+              )
+            }
           </Grid>
         </Grid>
       </Container>

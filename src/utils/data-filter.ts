@@ -1,48 +1,23 @@
 /* eslint-disable no-param-reassign */
 
-// 测试数据的正确性
-// const data = getDataForTable(CarsDataSource, {
-//   dateField: 'DATE',
-//   dateFilter: 'month',
-//   columnsFields: {
-//     accessor: '',
-//   },
-//   rowsFields: [{
-//     accessor: 'BRAND',
-//   }, {
-//     accessor: 'TYPE',
-//   }, {
-//     accessor: 'NAME',
-//   }],
-//   dataFields: [{
-//     accessor: 'COUNT',
-//     filter: (str, currData) => {
-//       return +str + (+currData.COUNT || 0);
-//     }
-//   }, {
-//     accessor: 'PRICE',
-//     filter: (str, currData) => {
-//       return +str + (+currData.PRICE || 0);
-//     }
-//   }],
-// });
-// console.log(data);
-
 export const month = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
-const getDataLenByDate = (dateFilter) => {
-  let dataLen;
-  switch (dateFilter) {
+
+export const halfYear = [
+  "up", "down",
+];
+const getDataLenByColumns = (columnsAccessor) => {
+  // return [columnsAccessor].length;
+  switch (columnsAccessor) {
     case 'month':
-      dataLen = 12;
-      break;
+      return month.length;
     case 'year':
-      dataLen = 1;
-      break;
+      return 1;
+    default:
+      return 1;
   }
-  return dataLen;
 };
 
 interface Accessor {
@@ -56,26 +31,53 @@ interface GetDataForChartOptions {
   dataFields: Accessor[];
 }
 
+const getStatisticsField = (date, dateFilter) => {
+  const dataEntity = new Date(date);
+  switch (dateFilter) {
+    case 'year':
+      return dataEntity.getFullYear();
+    case 'month':
+    default:
+      return dataEntity.getMonth();
+  }
+};
+
 const getDataForChart = (DataSource, options: GetDataForChartOptions) => {
   const dateForChart = {};
-  const { dateField, dataFields, dateFilter } = options;
-  const dataLen = getDataLenByDate(dateFilter);
+  const {
+    dateField, dataFields, dateFilter,
+  } = options;
+  const dataLen = getDataLenByColumns(dateFilter);
   DataSource.forEach((item) => {
     const date = item[dateField];
-    const monthNum = (new Date(date)).getMonth();
+    // const monthNum = (new Date(date)).getMonth();
+    const statisticsField = getStatisticsField(date, dateFilter);
     dataFields.forEach(({ accessor, filter }) => {
       if (!dateForChart[accessor]) dateForChart[accessor] = new Array(dataLen);
       const currContent = item[accessor];
-      dateForChart[accessor][monthNum] = filter ? filter(currContent, dateForChart[accessor][monthNum]) : currContent;
+      dateForChart[accessor][statisticsField] = filter ? filter(currContent, dateForChart[accessor][monthNum]) : currContent;
     });
   });
 
   return dateForChart;
 };
 
+const getDataDeeper = (columnsFields, currDataItem) => {
+  const dataDeeper = 0;
+  switch (columnsFields) {
+    case 'year':
+      var dataEntity = new Date(currDataItem);
+      return dataEntity.getFullYear();
+    case 'month':
+      var dataEntity = new Date(currDataItem);
+      return dataEntity.getMonth();
+  }
+  return dataDeeper;
+};
+
 interface GetDataForTableOptions {
-  dateField: string;
-  dateFilter: 'month' | 'year';
+  // dateField: string;
+  // dateFilter: 'month' | 'year';
   columnsFields: Accessor;
   rowsFields: Accessor[];
   dataFields: Accessor[];
@@ -84,36 +86,40 @@ const getDataForTable = (DataSource, options: GetDataForTableOptions) => {
   if (!options) return console.log('请传入 options');
   const dataForTable = {};
   const {
-    dataFields, rowsFields, columnsFields, dateField, dateFilter
+    dataFields, rowsFields, columnsFields,
   } = options;
-  const dataLen = getDataLenByDate(dateFilter);
+  const dataLen = getDataLenByColumns(columnsFields);
   const rowsFieldsLen = rowsFields.length;
-  DataSource.forEach((item) => {
-    const dateAccessor = item[dateField];
-    const dataDeeper = (new Date(dateAccessor)).getMonth();
-    const rowsFieldFilter = (targetObj, rowFilterDeepIdx = 0) => {
+  DataSource.forEach((dataItem) => {
+    // const dateAccessor = dataItem[dateField];
+    // const dataDeeper = (new Date(dateAccessor)).getMonth();
+    const tableGenerator = (targetObj, rowFilterDeepIdx = 0) => {
       // 递归修改 targetObj 的属性
       if (rowFilterDeepIdx > rowsFieldsLen - 1) {
         return targetObj;
       }
       const { accessor, filter } = rowsFields[rowFilterDeepIdx];
-      const currItemField = item[filter ? filter(item, {}) : accessor];
+      const currItemField = dataItem[filter ? filter(dataItem, {}) : accessor];
       if (rowFilterDeepIdx === rowsFieldsLen - 1) {
         // 向最后一项添加 data
+        // columnsFields.forEach((columnField, idx) => {
+        const dataDeeper = getDataDeeper(columnsFields, dataItem);
         if (!targetObj[currItemField]) targetObj[currItemField] = new Array(dataLen);
         dataFields.forEach(({ accessor: dataAccessor, filter: dataFilter }) => {
           targetObj[currItemField][dataDeeper] = {
             ...targetObj[currItemField][dataDeeper],
             [dataAccessor]: dataFilter
-              ? dataFilter(item[dataAccessor], targetObj)
-              : item[dataAccessor],
+              ? dataFilter(dataItem[dataAccessor], targetObj)
+              : dataItem[dataAccessor],
           };
         });
+        // });
       } else if (!targetObj[currItemField]) targetObj[currItemField] = {};
-      rowsFieldFilter(targetObj[currItemField], rowFilterDeepIdx + 1);
+      tableGenerator(targetObj[currItemField], rowFilterDeepIdx + 1);
     };
-    rowsFieldFilter(dataForTable, 0);
+    tableGenerator(dataForTable, 0);
   });
+  console.log(dataForTable);
   return dataForTable;
   // CarsDataForPivotTable = dataForTable;
 

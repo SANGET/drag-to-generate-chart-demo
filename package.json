@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "PORT=9999 minictl start",
+    "start": "PORT=10101 minictl start",
     "build": "minictl build",
     "prettier:base": "prettier --parser typescript",
     "format": "npm run prettier:base -- --write \"src/**/*.{ts,tsx}\"",
@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@babel/preset-typescript": "^7.6.0",
-    "@deer-ui/core": "^4.0.0-rc5.1",
+    "@deer-ui/core": "^4.0.0-rc5.3",
     "@mini-code/base-func": "^1.1.0",
     "@mini-code/request": "^1.0.0-alpha2.3",
     "@types/react": "^16.9.4",

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import ToolTip from '@deer-ui/core/tooltip/tooltip';
 
@@ -48,6 +48,12 @@ const DragItem = ({
 const ChartSelectorGroup = ({
   setActiveComponentByType,
 }) => {
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      document.querySelector('#pivoTable').click();
+    }
+    return () => {};
+  }, []);
   return (
     <>
       <div className="chart-selector">
@@ -68,6 +74,7 @@ const ChartSelectorGroup = ({
                 <DragItem
                   className="drag-area _btn"
                   item={item}
+                  id={type}
                   onClick={(e) => {
                     setActiveComponentByType(type, item);
                   }}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '@deer-ui/core/container';
 import { Grid } from '@deer-ui/core/grid';
 import { Button } from '@deer-ui/core/button';
@@ -33,6 +33,19 @@ const UploadFile = ({
 }) => {
   const [loadedData, setLoadedData] = useState();
   const isLoaded = !!loadedData;
+  const loadDefaultData = () => {
+    import('../utils/carsdata.json')
+      .then((res) => {
+        onLoadFile(res.Cars);
+        setLoadedData(res.Cars);
+      });
+  };
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      loadDefaultData();
+    }
+    return () => {};
+  }, []);
   return (
     <Container className={`file-loader${isLoaded ? ' has-data' : ''}`} fluid>
       <div className="section-mark"></div>
@@ -67,11 +80,7 @@ const UploadFile = ({
           className="mr10"
           icon="cloud-upload-alt"
           onClick={(e) => {
-            import('../utils/carsdata.json')
-              .then((res) => {
-                onLoadFile(res.Cars);
-                setLoadedData(res.Cars);
-              });
+            loadDefaultData();
           }}
         >
         Load default xlsx
