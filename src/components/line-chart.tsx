@@ -1,21 +1,30 @@
 import React, { useEffect, useMemo } from 'react';
 import { FormOptions } from '@deer-ui/core/form-generator/form-filter';
-import { month, getDataForChart } from '../utils/data-filter';
-import { setDataTip } from '../utils/constant';
+import { month, getDataForChart, AccessorFilterParams } from '../utils/data-filter';
+import { setDataTip, dateFieldReg } from '../utils/constant';
 
 const defaultTitle = 'chart title';
 
 const getAccessorOptions = ({
-  dateField,
-  dataFields,
+  dataFields, ...otherProps
 }) => {
   return {
-    dateField,
+    ...otherProps,
     dateFilter: 'month',
     dataFields: dataFields.map((accessor) => ({
       accessor,
-      filter: (str, currData) => {
-        return isNaN(+str) ? str : +str + (+currData || 0);
+      filter: (filterParams: AccessorFilterParams) => {
+        const {
+          srcStr, currData, currItem, config
+        } = filterParams;
+        // filter: (str, currData, config) => {
+        // const { yearOptions, dateField } = config;
+        // if (yearOptions) {
+        return isNaN(+srcStr) ? srcStr : +srcStr + (currData ? +(currData) || 0 : 0);
+        // if (yearOptions.indexOf(String((new Date(currItem[dateField])).getFullYear())) > -1) {
+        // }
+        // }
+        // return srcStr;
       }
     })),
   };
@@ -69,10 +78,25 @@ const LineChart = ({
 };
 
 
-const options = (columns): FormOptions => {
+const options = (columns, innerValue, dataSource): FormOptions => {
+  const { columnsFields, rowsFields, dataFields } = innerValue;
   const columnValues = {};
-  columns.map((column) => {
+  const rowsValues = {};
+  const dataValues = {};
+  let defaultDateField;
+  columns.forEach((column) => {
     columnValues[column] = column;
+    if (dateFieldReg.test(column)) {
+      defaultDateField = column;
+    }
+    const isColumnMark = columnsFields && columnsFields.indexOf(column) === -1;
+    const isRowMark = rowsFields && rowsFields.indexOf(column) === -1;
+    if (isColumnMark) {
+      rowsValues[column] = column;
+    }
+    if (isColumnMark && isRowMark) {
+      dataValues[column] = column;
+    }
   });
   return [
     {
@@ -82,10 +106,11 @@ const options = (columns): FormOptions => {
       ref: 'title'
     },
     {
-      type: 'radio',
+      type: 'select',
       title: 'Date fields',
       ref: 'dateField',
       required: true,
+      defaultValue: defaultDateField,
       values: columnValues
     },
     {

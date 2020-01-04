@@ -1,17 +1,18 @@
-import React, { Fragment, useMemo } from 'react';
+import React, { Fragment, useMemo, useState } from 'react';
 import { FormOptions } from '@deer-ui/core/form-generator/form-generator';
-import { month, getDataForTable } from '../utils/data-filter';
-import { setDataTip } from '../utils/constant';
+import { Table as DeerTable } from '@deer-ui/core/table';
+import { Pagination } from '@deer-ui/core/pagination';
+import { month, getDataForTable, AccessorFilterParams } from '../utils/data-filter';
+import { setDataTip, dateFieldReg } from '../utils/constant';
 
 const getAccessorOptions = ({
   columnsFields,
-  dateField,
-  yearOptions,
   rowsFields,
   dataFields,
+  ...other
 }) => {
   return {
-    dateField,
+    ...other,
     dateFilter: columnsFields,
     columnsFields,
     rowsFields: rowsFields.map((accessor) => ({
@@ -19,19 +20,31 @@ const getAccessorOptions = ({
     })),
     dataFields: dataFields.map((accessor) => ({
       accessor,
-      filter: (str, currData) => {
-        return isNaN(+str) ? str : +str + (+currData[accessor] || 0);
+      filter: (filterParams: AccessorFilterParams) => {
+        const {
+          srcStr, currData, currItem, config
+        } = filterParams;
+        // filter: (str, currData, config) => {
+        const { yearOptions, dateField } = config;
+        if (yearOptions) {
+          if (yearOptions.indexOf(String((new Date(currItem[dateField])).getFullYear())) > -1) {
+            return isNaN(+srcStr) ? srcStr : +srcStr + (currData ? +(currData[accessor]) || 0 : 0);
+          }
+        }
+        return srcStr;
       }
     })),
   };
 };
 
-// const ColumnMapper = () => {
-//   return {
-//     month: month,
-//     year:
-//   }
-// }
+const getColumn = (columnsFields) => {
+  switch (columnsFields) {
+    case 'month':
+      return month;
+    default:
+      return [columnsFields];
+  }
+};
 
 const Table = ({
   dataSource, columns,
@@ -49,7 +62,7 @@ const Table = ({
     yearOptions,
     dataFields,
   });
-  const colums = [columnsFields];
+  const colums = getColumn(columnsFields);
   const colSpan = colums.length * dataFieldLen + 1;
   const data = useMemo(
     () => getDataForTable(dataSource, accessorOptions),
@@ -63,7 +76,7 @@ const Table = ({
           {
             colums.map((item) => {
               return (
-                <th key={item} colSpan={colSpan}>{item}</th>
+                <th key={item} colSpan={dataFieldLen}>{item}</th>
               );
             })
           }
@@ -144,8 +157,6 @@ const Table = ({
   );
 };
 
-const dateFieldReg = /date/i;
-
 const getDateOptions = ({
   dataSource, dateField, columnValues
 }): FormOptions => {
@@ -182,6 +193,7 @@ const getDateOptions = ({
 };
 
 const options = (columns, innerValue, dataSource): FormOptions => {
+  if (!innerValue) return [];
   const { columnsFields, rowsFields, dataFields } = innerValue;
   const columnValues = {};
   const rowsValues = {};
@@ -212,18 +224,11 @@ const options = (columns, innerValue, dataSource): FormOptions => {
       type: 'select',
       title: 'Column fields',
       ref: 'columnsFields',
-      // defaultValue: 'month',
-      // needCancel: false,
-      // isMultiple: true,
       displayMultipleItems: true,
       required: true,
       values: {
-        ...columnValues,
         month: 'month',
-        // year: 'year',
-        // season: 'season',
-        // halflYear: 'halflYear',
-        // fullYear: 'fullYear',
+        ...columnValues,
       }
     },
     ...dateColumn,
@@ -248,23 +253,42 @@ const options = (columns, innerValue, dataSource): FormOptions => {
   ];
 };
 
+const NormalTable = ({
+  dataSource
+}) => {
+  const [pagin, setPagin] = useState({
+    active: true,
+    total: dataSource.length,
+    pIdx: 0,
+    pSize: 20
+  });
+  const columns = Object.keys(dataSource[0]).map((item) => ({
+    key: item
+  }));
+  const data = dataSource.slice(pagin.pIdx * pagin.pSize, (pagin.pIdx + 1) * pagin.pSize);
+  return (
+    <div className="normal-table">
+      <DeerTable
+        dataRows={data}
+        columns={columns}
+        height="30vh"
+        rowKey={(record, idx) => idx}
+      />
+      <Pagination pagingInfo={pagin} onPagin={setPagin} />
+    </div>
+  );
+};
+
 const TableFilter = (props) => {
   const {
     columnsFields,
     rowsFields,
     dataFields,
+    dataSource,
   } = props;
   if (!rowsFields || !columnsFields || !dataFields) {
     return (
-      <table className="table">
-        <thead>
-        </thead>
-        <tbody>
-          <tr>
-            <td><h3>{setDataTip}</h3></td>
-          </tr>
-        </tbody>
-      </table>
+      <NormalTable {...props} />
     );
   }
   return <Table {...props} />;

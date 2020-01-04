@@ -20,9 +20,15 @@ const getDataLenByColumns = (columnsAccessor) => {
   }
 };
 
+export interface AccessorFilterParams {
+  srcStr: string;
+  currData: any;
+  currItem?: any;
+  config?: any;
+}
 interface Accessor {
   accessor: string;
-  filter?: (accessor: string, currData: {}) => any;
+  filter?: (filterParams: AccessorFilterParams) => any;
 }
 
 interface GetDataForChartOptions {
@@ -50,12 +56,15 @@ const getDataForChart = (DataSource, options: GetDataForChartOptions) => {
   const dataLen = getDataLenByColumns(dateFilter);
   DataSource.forEach((item) => {
     const date = item[dateField];
-    // const monthNum = (new Date(date)).getMonth();
+    const monthNum = (new Date(date)).getMonth();
     const statisticsField = getStatisticsField(date, dateFilter);
     dataFields.forEach(({ accessor, filter }) => {
       if (!dateForChart[accessor]) dateForChart[accessor] = new Array(dataLen);
       const currContent = item[accessor];
-      dateForChart[accessor][statisticsField] = filter ? filter(currContent, dateForChart[accessor][monthNum]) : currContent;
+      dateForChart[accessor][statisticsField] = filter ? filter({
+        srcStr: currContent,
+        currData: dateForChart[accessor][monthNum]
+      }) : currContent;
     });
   });
 
@@ -76,7 +85,7 @@ const getDataDeeper = (columnsFields, currDataItem) => {
 };
 
 interface GetDataForTableOptions {
-  // dateField: string;
+  dateField: string;
   // dateFilter: 'month' | 'year';
   columnsFields: Accessor;
   rowsFields: Accessor[];
@@ -86,7 +95,7 @@ const getDataForTable = (DataSource, options: GetDataForTableOptions) => {
   if (!options) return console.log('请传入 options');
   const dataForTable = {};
   const {
-    dataFields, rowsFields, columnsFields,
+    dataFields, rowsFields, columnsFields, dateField, ...other
   } = options;
   const dataLen = getDataLenByColumns(columnsFields);
   const rowsFieldsLen = rowsFields.length;
@@ -103,13 +112,18 @@ const getDataForTable = (DataSource, options: GetDataForTableOptions) => {
       if (rowFilterDeepIdx === rowsFieldsLen - 1) {
         // 向最后一项添加 data
         // columnsFields.forEach((columnField, idx) => {
-        const dataDeeper = getDataDeeper(columnsFields, dataItem);
+        const dataDeeper = getDataDeeper(columnsFields, dataItem[dateField]);
         if (!targetObj[currItemField]) targetObj[currItemField] = new Array(dataLen);
         dataFields.forEach(({ accessor: dataAccessor, filter: dataFilter }) => {
           targetObj[currItemField][dataDeeper] = {
             ...targetObj[currItemField][dataDeeper],
             [dataAccessor]: dataFilter
-              ? dataFilter(dataItem[dataAccessor], targetObj)
+              ? dataFilter({
+                srcStr: dataItem[dataAccessor],
+                currData: targetObj[currItemField][dataDeeper],
+                config: options,
+                currItem: dataItem
+              })
               : dataItem[dataAccessor],
           };
         });
@@ -119,7 +133,6 @@ const getDataForTable = (DataSource, options: GetDataForTableOptions) => {
     };
     tableGenerator(dataForTable, 0);
   });
-  console.log(dataForTable);
   return dataForTable;
   // CarsDataForPivotTable = dataForTable;
 

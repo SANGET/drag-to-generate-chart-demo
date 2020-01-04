@@ -73,7 +73,7 @@ const App = () => {
             {
               selectedItem && (
                 <ComponentPropsEditor
-                  key={selectedType}
+                  // key={selectedType}
                   columns={dataSource ? Object.keys(dataSource[0]) : []}
                   selectedComponent={selectedItem}
                   dataSource={dataSource}
