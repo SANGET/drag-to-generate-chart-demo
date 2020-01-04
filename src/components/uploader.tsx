@@ -4,6 +4,8 @@ import { Grid } from '@deer-ui/core/grid';
 import { Button } from '@deer-ui/core/button';
 import Alert from '@deer-ui/core/alert/alert';
 import { ShowModal } from '@deer-ui/core/modal';
+import { VersionDisplayer } from 'version-helper';
+import VersionInfo from '../version.json';
 import { convertXlsxToJson } from '../utils/convert2json';
 
 const HowToUse = () => {
@@ -49,7 +51,7 @@ const UploadFile = ({
   return (
     <Container className={`file-loader${isLoaded ? ' has-data' : ''}`} fluid>
       <div className="section-mark"></div>
-      <Grid container className="p10 content">
+      <Grid container className="p10 content" alignItems="center">
         <input
           id="LoadFile"
           accept=".xlsx"
@@ -138,8 +140,9 @@ const UploadFile = ({
           )
         }
         <span className="flex"></span>
+        <VersionDisplayer versionInfo={VersionInfo} />
         <Button
-          className="mr10"
+          className="ml10"
           hola
           color="black"
           icon="github"
