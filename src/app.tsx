@@ -6,10 +6,12 @@ import { Container } from '@deer-ui/core/container';
 import { DndProvider } from 'react-dnd';
 import Backend from 'react-dnd-html5-backend';
 
-import UploadFile from './components/uploader';
-import ChartSelectorGroup from './components/chart-selector';
-import MainRenderContainer from './components/component-renderer';
-import ComponentPropsEditor from './components/prop-editor';
+import Uploader from './system/uploader';
+import ChartSelector from './system/chart-selector';
+import MainRenderContainer from './system/component-renderer';
+import ComponentPropsEditor from './system/prop-editor';
+
+import chartSelections, { ComponentItem } from './components/register';
 
 import './style.scss';
 
@@ -20,7 +22,7 @@ const App = () => {
   const [selectedType, setSelectedType] = useState('');
   const [dataSource, setDataSource] = useState();
   const selectedItem = activeComponent[selectedType];
-  const setActiveComponentByType = (type, item) => {
+  const setActiveComponentByType = (type: string, item: ComponentItem) => {
     setActiveComponent({
       ...activeComponent,
       [type]: {
@@ -39,7 +41,7 @@ const App = () => {
   return (
     <DndProvider backend={Backend}>
       <Container className="App p10" fluid>
-        <UploadFile
+        <Uploader
           onLoadFile={(resData) => {
             setDataSource(resData);
           }}
@@ -49,8 +51,9 @@ const App = () => {
             xl={2}
             lg={2}
           >
-            <ChartSelectorGroup
+            <ChartSelector
               setActiveComponentByType={setActiveComponentByType}
+              data={chartSelections}
             />
           </Grid>
           <Grid

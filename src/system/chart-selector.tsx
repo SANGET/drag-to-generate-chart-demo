@@ -2,32 +2,7 @@ import React, { useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import ToolTip from '@deer-ui/core/tooltip/tooltip';
 
-import Table from './table';
-import LineChart from './line-chart';
 import { ItemTypes } from '../utils/constant';
-
-const createViewType = [
-  {
-    type: 'lineChart',
-    title: 'Line Chart',
-    component: LineChart,
-    icon: "chart-line",
-    layoutInfo: {
-      xl: 6,
-      lg: 6,
-    }
-  },
-  {
-    type: 'pivoTable',
-    title: 'Pivot Table',
-    component: Table,
-    icon: "table",
-    layoutInfo: {
-      xl: 12,
-      lg: 12,
-    }
-  },
-];
 
 const DragItem = ({
   children, item, ...other
@@ -46,7 +21,7 @@ const DragItem = ({
 };
 
 const ChartSelectorGroup = ({
-  setActiveComponentByType,
+  setActiveComponentByType, data
 }) => {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -59,7 +34,7 @@ const ChartSelectorGroup = ({
       <div className="chart-selector">
         <h4>Chart type</h4>
         {
-          createViewType.map((item) => {
+          data.map((item) => {
             const {
               title, component, type, icon
             } = item;
