@@ -11,9 +11,10 @@ import ChartSelector from './system/chart-selector';
 import MainRenderContainer from './system/component-renderer';
 import ComponentPropsEditor from './system/prop-editor';
 
-import chartSelections, { ComponentItem } from './components/register';
+import chartSelections from './components/register';
 
 import './style.scss';
+import { SetActiveComponentByType } from './system/types';
 
 if (window.OnLuanched) window.OnLuanched();
 
@@ -22,7 +23,7 @@ const App = () => {
   const [selectedType, setSelectedType] = useState('');
   const [dataSource, setDataSource] = useState();
   const selectedItem = activeComponent[selectedType];
-  const setActiveComponentByType = (type: string, item: ComponentItem) => {
+  const setActiveComponentByType: SetActiveComponentByType = (type, item) => {
     setActiveComponent({
       ...activeComponent,
       [type]: {

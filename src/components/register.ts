@@ -1,21 +1,6 @@
-import { Children } from '@deer-ui/core/utils';
-import { RowSet } from '@deer-ui/core/grid';
 import Table from './table';
 import LineChart from './line-chart';
-
-export interface ComponentItem {
-  type: string;
-  title: string;
-  component: Children;
-  icon?: string;
-  layoutInfo?: {
-    xs?: RowSet;
-    sm?: RowSet;
-    md?: RowSet;
-    lg?: RowSet;
-    xl?: RowSet;
-  };
-}
+import { ComponentItem } from '../system/types';
 
 const chartSelections: ComponentItem[] = [
   {

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import ToolTip from '@deer-ui/core/tooltip/tooltip';
 
+import { ComponentItem, SetActiveComponentByType } from './types';
 import { ItemTypes } from '../utils/constant';
 
 const DragItem = ({
@@ -22,6 +23,9 @@ const DragItem = ({
 
 const ChartSelectorGroup = ({
   setActiveComponentByType, data
+}: {
+  setActiveComponentByType: SetActiveComponentByType;
+  data: ComponentItem[];
 }) => {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
