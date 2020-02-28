@@ -8,18 +8,29 @@ import Backend from 'react-dnd-html5-backend';
 
 import Uploader from './system/uploader';
 import ChartSelector from './system/chart-selector';
-import MainRenderContainer from './system/component-renderer';
+import StageContainer from './system/stage';
 import ComponentPropsEditor from './system/prop-editor';
 
 import chartSelections from './components/register';
 
+import { SetActiveComponentByType, ComponentItem } from './system/types';
+
 import './style.scss';
-import { SetActiveComponentByType } from './system/types';
 
 if (window.OnLuanched) window.OnLuanched();
 
+interface ActiveComponentEntity extends ComponentItem {
+  runningProps: {
+    [key: string]: any;
+  };
+}
+
+interface ActiveComponentGroup {
+  [type: string]: ActiveComponentEntity;
+}
+
 const App = () => {
-  const [activeComponent, setActiveComponent] = useState({});
+  const [activeComponent, setActiveComponent] = useState<ActiveComponentGroup>({});
   const [selectedType, setSelectedType] = useState('');
   const [dataSource, setDataSource] = useState();
   const selectedItem = activeComponent[selectedType];
@@ -61,7 +72,7 @@ const App = () => {
             xl={8}
             lg={8}
           >
-            <MainRenderContainer
+            <StageContainer
               activeComponent={activeComponent}
               selectedItem={selectedItem}
               setSelectedType={setSelectedType}

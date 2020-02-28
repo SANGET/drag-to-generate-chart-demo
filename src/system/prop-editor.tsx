@@ -43,10 +43,15 @@ class ComponentPropsEditor extends React.Component {
       title, component, type, runningProps
     } = selectedComponent;
     const { innerValue } = this.state;
-    const { genEditablePropsConfig } = component;
+    /**
+     * 组件的生命周期
+     */
+    const {
+      onWillMount
+    } = component;
     // console.log(runningProps)
     // const [innerValue, setinnerValue] = useState(runningProps);
-    const formOptions = genEditablePropsConfig(columns, innerValue, dataSource);
+    const formOptions = onWillMount(columns, innerValue, dataSource);
     return (
       <div className="chart-editor">
         <FormLayout

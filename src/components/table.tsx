@@ -294,6 +294,6 @@ const TableFilter = (props) => {
   return <Table {...props} />;
 };
 
-TableFilter.genEditablePropsConfig = options;
+TableFilter.onWillMount = options;
 
 export default TableFilter;

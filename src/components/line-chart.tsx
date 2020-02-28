@@ -29,6 +29,7 @@ const getAccessorOptions = ({
     })),
   };
 };
+
 const LineChart = ({
   dataSource, title = defaultTitle,
   dateField, dataFields
@@ -77,6 +78,18 @@ const LineChart = ({
   );
 };
 
+const LineChartRender = (props) => {
+  const {
+    dateField,
+    dataFields,
+  } = props;
+  if (!dateField || !dataFields) {
+    return (
+      <h3 className="text-center">{setDataTip}</h3>
+    );
+  }
+  return <LineChart {...props} />;
+};
 
 const options = (columns, innerValue, dataSource): FormOptions => {
   const { columnsFields, rowsFields, dataFields } = innerValue;
@@ -125,19 +138,6 @@ const options = (columns, innerValue, dataSource): FormOptions => {
   ];
 };
 
-const LineChartRender = (props) => {
-  const {
-    dateField,
-    dataFields,
-  } = props;
-  if (!dateField || !dataFields) {
-    return (
-      <h3 className="text-center">{setDataTip}</h3>
-    );
-  }
-  return <LineChart {...props} />;
-};
-
-LineChartRender.genEditablePropsConfig = options;
+LineChartRender.onWillMount = options;
 
 export default LineChartRender;
